@@ -3,9 +3,9 @@ import 'package:flutter/animation.dart';
 
 
 class Spinner extends StatefulWidget {
-  double diameter;
-  Color color;
-  int delay;
+  final double diameter;
+  final Color color;
+  final int delay;
   Spinner(this.diameter, this.color,this.delay );
   _SpinnerState createState() => _SpinnerState(this.diameter, this.color, this.delay);
 }
@@ -41,6 +41,7 @@ class _SpinnerState extends State<Spinner> with TickerProviderStateMixin {
 
   Widget build(BuildContext context) {
     return Container(
+      
         // color: Colors.white,
         child: ScaleTransition(
             scale: _animation,
