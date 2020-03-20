@@ -1,8 +1,9 @@
 # MacDevCleaner
+Mac disk cleaner for developers base on Flutter.
 
-A new Flutter project.
+![Screenshot.png](./screenshot.png)  
 
-## Getting Started
+## Contributting getting Started
 
 This project is a starting point for a Flutter application.
 
