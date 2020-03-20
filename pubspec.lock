@@ -67,10 +67,12 @@ packages:
   disk_space:
     dependency: "direct main"
     description:
-      path: "../disk_space"
-      relative: true
-    source: path
-    version: "0.0.9"
+      path: "."
+      ref: HEAD
+      resolved-ref: c7d7240714f48588d20f213c40fc4fb37115f509
+      url: "git://github.com/bung87/disk_space.git"
+    source: git
+    version: "0.0.5"
   event_bus:
     dependency: "direct main"
     description:

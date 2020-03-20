@@ -23,8 +23,8 @@ dependencies:
   url_launcher: '^5.4.2'
   # test_process: ^1.0.5
   disk_space:
-    version: ^0.0.7
-    path: ../disk_space
+    git:
+      url: git://github.com/bung87/disk_space.git
   path_provider_macos: ^0.0.1
   event_bus: ^1.1.1
   path: 
