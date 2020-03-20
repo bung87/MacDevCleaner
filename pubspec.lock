@@ -70,7 +70,7 @@ packages:
       path: "../disk_space"
       relative: true
     source: path
-    version: "0.0.7"
+    version: "0.0.9"
   event_bus:
     dependency: "direct main"
     description:

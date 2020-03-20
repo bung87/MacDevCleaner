@@ -6,7 +6,7 @@ import 'package:event_bus/event_bus.dart';
 import '../filesize.dart';
 
 class MacTask extends Task{
-  static String  app = "Mac";
+   String  app = "Mac";
   MacTask(EventBus _globalBus) : super(_globalBus) {
     // application caches
     filesInDirectory(Directory("~/Library/Containers/"),FileSystemEntityType.directory).then( (dirs) {
@@ -31,16 +31,26 @@ class MacTask extends Task{
     var task = new DirsCleanTask(this.dirs);
     task.eventBus.on<DirInfo>().listen( (event ) {
       total += event.size;
-      this.eventBus.fire( TaskData(MacTask.app,event.toString() ) );
+      
+      this.eventBus.fire( TaskData(this.app,event.toString() ) );
     });
     task.eventBus.on<TaskStatus>().listen((event) {
-      if(event == TaskStatus.done){
-        this.eventBus.fire(TaskData(MacTask.app,fileSizeHumanReadable(total)));
+       if(total == 0){
+          this.eventBus.fire(TaskData(this.app,"empty"));
+        }else{
+          this.eventBus.fire(TaskData(this.app,fileSizeHumanReadable(total)));
+        }
+        this.cache.addAll(task.cache);
+        this.eventBus.fire(TaskState(this.app,TaskStatus.done,TaskType.scan,total));
         total = 0;
-      }
     });
-    task.run();
+    task.scan();
   }
+
+  // @override
+  // clean(){
+    
+  // }
 }
 
 // brew cleanup

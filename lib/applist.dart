@@ -1,14 +1,11 @@
-import 'dart:collection';
-
-import 'package:MacDevCleaner/apps/nodejs.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import "package:flutter_brand_icons/flutter_brand_icons.dart";
 import './task.dart';
 import './apps/mac.dart';
-import './utils.dart';
-import './filesize.dart';
+import './apps/ios.dart';
+import './apps/nodejs.dart';
 
 class AppList extends StatefulWidget {
   final EventBus _globalEventBus;
@@ -37,28 +34,34 @@ class _AppListState extends State<AppList> {
   Map<String, String> taskStates =
       Map.fromIterable(entries, key: (k) => k, value: (v) => "");
 
+  setTaskData(event) {
+    setState(() {
+      this.taskStates[event.app] = event.info;
+      print(event.info);
+    });
+  }
+
+  // eg. nodejs scan done
+  Map<String, TaskState> taskStates2 = {};
+
+  setTaskState(TaskState state) {
+    // if(state.type == TaskType.clean){
+
+    // }
+    taskStates2[state.app] = state;
+    if (taskStates2.values
+        .every((element) => element?.status == TaskStatus.done)) {
+      this._globalEventBus.fire(TaskState("all", TaskStatus.done, state.type,0));
+    }
+  }
+
   initState() {
     super.initState();
-    new MacTask(_globalEventBus).eventBus.on<TaskData>().listen((event) {
-      setState(() {
-        this.taskStates[event.app] = event.info;
-        print(event.info);
-      });
-    });
-    // int total = 0;
-    var task = new NodeTask(_globalEventBus);
-  
-    task.eventBus.on<TaskData>().listen((event) {
-      // total += Directory(event.info).statSync().size;
-      print(event.info);
-      setState(() {
-        this.taskStates[event.app] = event.info;
-
-      });
-    });
+    var macTask = new MacTask(_globalEventBus);
+    macTask.eventBus.on<TaskData>().listen(setTaskData);
+    macTask.eventBus.on<TaskState>().listen(setTaskState);
+    taskStates2.putIfAbsent("Mac", () => null);
     
-    
-
     appStates.addAll({"Mac": "", "ios": ""});
     const iphone = "~/Library/Application Support/iPhone Simulator/";
     const xcode = "~/Library/Developer/Xcode/";
@@ -67,16 +70,29 @@ class _AppListState extends State<AppList> {
         .any((element) => element == true)
         .then((value) => setState(() {
               this.appStates["ios"] = "detected";
+              var task = new IosTask(_globalEventBus);
+              task.eventBus.on<TaskData>().listen(setTaskData);
+              task.eventBus.on<TaskState>().listen(setTaskState);
+              taskStates2.putIfAbsent("ios", () => null);
             }));
 
     Process.start("node", ["-v"], runInShell: true).then((value) {
       setState(() {
         this.hasNode = true;
+        taskStates2.putIfAbsent("nodejs", () => null);
         this.appStates["nodejs"] = "installed";
+
+        var task = new NodeTask(_globalEventBus);
+        task.eventBus.on<TaskData>().listen(setTaskData);
+        task.eventBus.on<TaskState>().listen(setTaskState);
+        taskStates2.putIfAbsent("nodejs", () => null);
+
       });
     }).catchError((e) {
       setState(() {
         this.hasNode = false;
+        
+
         this.appStates["nodejs"] = "not installed";
       });
     });
@@ -106,7 +122,6 @@ class _AppListState extends State<AppList> {
   }
 
   Widget build(BuildContext context) {
-    // Map<String,String> appStates = { for (var key in entries) key:"detecting ${key}"};
     final list = ListView.separated(
       padding: const EdgeInsets.all(8),
       itemCount: entries.length,
@@ -128,27 +143,22 @@ class _AppListState extends State<AppList> {
                                 padding: EdgeInsets.only(left: 10),
                                 child: Text(entries[index],
                                     textAlign: TextAlign.left)),
-                            Column(
-                              children: <Widget>[
-                                Padding(
-                                    padding: EdgeInsets.only(left: 5),
-                                    child: Text(
-                                        entries[index] == "Mac"
-                                            ? ""
-                                            : "(${appStates[entries[index]]})",
-                                        style:
-                                            TextStyle(color: Colors.grey[400]),
-                                        textAlign: TextAlign.left)),
-                                Padding(
-                                  padding: EdgeInsets.only(left: 5),
-                                  child: Text(taskStates[entries[index]],
-                                      style: TextStyle(fontSize: 10),
-                                      textAlign: TextAlign.left,
-                                      overflow: TextOverflow.ellipsis),
-                                )
-                              ],
-                            )
+                            Padding(
+                                padding: EdgeInsets.only(left: 5),
+                                child: Text(
+                                    entries[index] == "Mac"
+                                        ? ""
+                                        : "(${appStates[entries[index]]})",
+                                    style: TextStyle(color: Colors.grey[400]),
+                                    textAlign: TextAlign.left)),
                           ],
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(left: 10),
+                          child: Text(taskStates[entries[index]],
+                              style: TextStyle(fontSize: 10),
+                              textAlign: TextAlign.left,
+                              overflow: TextOverflow.ellipsis),
                         )
                       ])
                 ]));
