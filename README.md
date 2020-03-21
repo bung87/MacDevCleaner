@@ -1,4 +1,6 @@
-# MacDevCleaner
+# MacDevCleaner 
+[![buy me a coffee](https://img.shields.io/badge/donate-buy%20me%20a%20coffee-orange.svg)](https://www.buymeacoffee.com/d4v36nCg1)  
+
 Mac disk cleaner for developers base on Flutter.
 
 ![Screenshot.png](./screenshot.png)  
