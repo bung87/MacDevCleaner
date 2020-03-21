@@ -1,16 +1,18 @@
-import 'dart:io' show Directory, File, FileSystemEntity, FileSystemEntityType;
+import 'dart:io' show Directory, File, FileSystemEntity, FileSystemEntityType,Platform;
 
+final String userHome =
+      Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
 
 filesInDirectory(Directory dir, FileSystemEntityType typ) async {
   List<dynamic> files = <dynamic>[];
-  if (!dir.existsSync()) {
+
+  if (dir == null || !dir.existsSync()) {
     return [];
   }
   await for (FileSystemEntity entity
       in dir.list(recursive: false, followLinks: false)) {
     FileSystemEntityType type = await FileSystemEntity.type(entity.path);
     if (type == typ) {
-      //FileSystemEntityType.file
       files.add(entity);
     }
   }
@@ -19,6 +21,9 @@ filesInDirectory(Directory dir, FileSystemEntityType typ) async {
 
 
 directorySize(Directory dir) async {
+  if(!dir.existsSync()){
+    return 0;
+  }
   var total = 0;
   await for (var entity in dir.list(recursive: true, followLinks: false)) {
     FileSystemEntityType type =

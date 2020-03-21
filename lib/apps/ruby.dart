@@ -4,6 +4,15 @@ import 'dart:io';
 import '../utils.dart';
 import '../filesize.dart';
 import 'dart:convert';
+import './ruby_utils.dart';
+import 'dart:isolate';
+
+final RegExp re = new RegExp(r'\.rvm/gems/ruby\-(\d+\.\d+(?:\.\d+)?)/gems');
+
+void runGetDirectorySize(SendPort sendPort) {
+  filesInDirectoryWithDepth(
+      Directory(userHome), FileSystemEntityType.directory, 0, 4, sendPort);
+}
 
 class RubyTask extends Task {
   String app = "ruby";
@@ -12,40 +21,44 @@ class RubyTask extends Task {
   @override
   scan() async {
     // final String workon = Platform.environment["GEM_HOME"];
-    var p = Process.start("/usr/bin/printenv", [r"GEM_HOME"]);
-    p.then((process) {
-      process.stdout.transform(utf8.decoder).listen((workon) {
-        _scan(workon.trim());
-      });
-    }).catchError((e){
-      this.eventBus.fire(TaskData(this.app, e.toString()));
-    }
-      
-    );
-    // _scan(workon.trim());
+    // var p = Process.start("rvm", [r"gemdir"]);
+    // p.then((process) {
+    //   process.stdout.transform(utf8.decoder).listen((workon) {
+    //     _scan(workon.trim());
+    //   });
+    // }).catchError((e){
+    //   this.eventBus.fire(TaskData(this.app, e.toString()));
+    // } );
+    ReceivePort receivePort = ReceivePort();
+    var isolate = await Isolate.spawn(runGetDirectorySize, receivePort.sendPort,
+        onExit: receivePort.sendPort);
+
+    receivePort.listen((data) {
+      _scan(data);
+      isolate.kill(priority: 0);
+    });
   }
 
-  _scan(String workon) async {
+  _scan(out) async {
     final days = new DateTime.now().subtract(new Duration(days: 90));
-    var dirs = await filesInDirectory(
-        Directory(workon), FileSystemEntityType.directory);
+    var dirs = await filesInDirectory(out, FileSystemEntityType.directory);
     int total = 0;
     Stream.fromIterable(dirs)
         .skipWhile((element) => element.statSync().accessed.isAfter(days))
-        .asyncMap(
-            (event) async => {"dir": event, "size": await directorySize(event)})
-        .listen((event) {
-      print(event);
-      this.cache.add(event["dir"]);
+        .asyncMap((event) async {
+      var size = await directorySize(event);
+      var data = {"dir": event, "size": size};
+      return data;
+    }).listen((event) {
+      this.cache.add(event);
       this.eventBus.fire(TaskData(this.app, event["dir"].path.toString()));
       total += event["size"];
-    },onError: (e){
-      this.eventBus.fire(TaskData(this.app, fileSizeHumanReadable(total)));
-      this
-          .eventBus
-          .fire(TaskState(this.app, TaskStatus.done, TaskType.scan, total));
     }).onDone(() {
-      this.eventBus.fire(TaskData(this.app, fileSizeHumanReadable(total)));
+      if (total == 0) {
+        this.eventBus.fire(TaskData(this.app, "empty"));
+      } else {
+        this.eventBus.fire(TaskData(this.app, fileSizeHumanReadable(total)));
+      }
       this
           .eventBus
           .fire(TaskState(this.app, TaskStatus.done, TaskType.scan, total));

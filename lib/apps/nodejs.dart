@@ -1,15 +1,11 @@
 import '../task.dart';
-import '../node_utils.dart';
+import './node_utils.dart';
 import '../utils.dart';
 import 'dart:io';
 import 'package:event_bus/event_bus.dart';
 import '../filesize.dart';
 import 'dart:async';
 import 'dart:isolate';
-
-final String userHome =
-      Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
-  
 
 void runGetDirectorySize(SendPort sendPort) {
   List<Directory> out = [];
