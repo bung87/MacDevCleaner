@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'package:path/path.dart' as path;
 import 'dart:io' show Directory, File, FileSystemEntity, FileSystemEntityType;
@@ -59,11 +58,21 @@ listenListWhere(event, {Function callback}) {
       .listen((data) => listenListWhere(data, callback: callback));
 }
 
- 
 void filesInDirectoryWithDepth(Directory dir, FileSystemEntityType typ,
     int currentLevel, int maxLevel, out) {
   final days = new DateTime.now().subtract(new Duration(days: 90));
-
+  if ([
+        "Documents",
+        "Applications",
+        "Desktop",
+        "Movies",
+        "Music",
+        "Pictures",
+        "Public"
+      ].indexOf(path.basename(dir.path)) !=
+      -1) {
+    return;
+  }
   if (path.basename(dir.path).startsWith(".")) {
     return;
   }
@@ -85,6 +94,18 @@ void filesInDirectoryWithDepth(Directory dir, FileSystemEntityType typ,
           if (path.basename(entity.path) == "node_modules") {
             out.add(entity);
 
+            return;
+          }
+          if ([
+                "Documents",
+                "Applications",
+                "Desktop",
+                "Movies",
+                "Music",
+                "Pictures",
+                "Public"
+              ].indexOf(path.basename(dir.path)) !=
+              -1) {
             return;
           }
           filesInDirectoryWithDepth(

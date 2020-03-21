@@ -6,6 +6,8 @@ import './task.dart';
 import './apps/mac.dart';
 import './apps/ios.dart';
 import './apps/nodejs.dart';
+import './apps/python.dart';
+import './apps/ruby.dart';
 
 class AppList extends StatefulWidget {
   final EventBus _globalEventBus;
@@ -51,7 +53,9 @@ class _AppListState extends State<AppList> {
     taskStates2[state.app] = state;
     if (taskStates2.values
         .every((element) => element?.status == TaskStatus.done)) {
-      this._globalEventBus.fire(TaskState("all", TaskStatus.done, state.type,0));
+      this
+          ._globalEventBus
+          .fire(TaskState("all", TaskStatus.done, state.type, 0));
     }
   }
 
@@ -61,61 +65,61 @@ class _AppListState extends State<AppList> {
     macTask.eventBus.on<TaskData>().listen(setTaskData);
     macTask.eventBus.on<TaskState>().listen(setTaskState);
     taskStates2.putIfAbsent("Mac", () => null);
-    
+
     appStates.addAll({"Mac": "", "ios": ""});
     const iphone = "~/Library/Application Support/iPhone Simulator/";
     const xcode = "~/Library/Developer/Xcode/";
 
     Stream.fromFutures([Directory(xcode).exists(), Directory(iphone).exists()])
         .any((element) => element == true)
-        .then((value) => setState(() {
-              this.appStates["ios"] = "detected";
-              var task = new IosTask(_globalEventBus);
-              task.eventBus.on<TaskData>().listen(setTaskData);
-              task.eventBus.on<TaskState>().listen(setTaskState);
-              taskStates2.putIfAbsent("ios", () => null);
-            }));
+        .then((value) {
+      var task = new IosTask(_globalEventBus);
+      task.eventBus.on<TaskData>().listen(setTaskData);
+      task.eventBus.on<TaskState>().listen(setTaskState);
+      taskStates2.putIfAbsent("ios", () => null);
+      setState(() {
+        this.appStates["ios"] = "detected";
+      });
+    });
 
     Process.start("node", ["-v"], runInShell: true).then((value) {
+      var task = new NodeTask(_globalEventBus);
+      task.eventBus.on<TaskData>().listen(setTaskData);
+      task.eventBus.on<TaskState>().listen(setTaskState);
+      taskStates2.putIfAbsent("nodejs", () => null);
       setState(() {
-        this.hasNode = true;
         taskStates2.putIfAbsent("nodejs", () => null);
         this.appStates["nodejs"] = "installed";
-
-        var task = new NodeTask(_globalEventBus);
-        task.eventBus.on<TaskData>().listen(setTaskData);
-        task.eventBus.on<TaskState>().listen(setTaskState);
-        taskStates2.putIfAbsent("nodejs", () => null);
-
       });
     }).catchError((e) {
       setState(() {
-        this.hasNode = false;
-        
-
         this.appStates["nodejs"] = "not installed";
       });
     });
     Process.start("python", ["--version"], runInShell: true).then((value) {
+      var task = new PythonTask(_globalEventBus);
+      task.eventBus.on<TaskData>().listen(setTaskData);
+      task.eventBus.on<TaskState>().listen(setTaskState);
+      taskStates2.putIfAbsent("python", () => null);
       setState(() {
-        this.hasPython = true;
         this.appStates["python"] = "installed";
       });
     }).catchError((e) {
       setState(() {
-        this.hasPython = false;
         this.appStates["python"] = "not installed";
       });
     });
     Process.start("ruby", ["-v"], runInShell: true).then((value) {
+      var task = new RubyTask(_globalEventBus);
+      task.eventBus.on<TaskData>().listen(setTaskData);
+      task.eventBus.on<TaskState>().listen(setTaskState);
+      taskStates2.putIfAbsent("ruby", () => null);
       setState(() {
-        this.hasRuby = true;
         this.appStates["ruby"] = "installed";
       });
     }).catchError((e) {
       print(e);
       setState(() {
-        this.hasRuby = false;
         this.appStates["ruby"] = "not installed";
       });
     });

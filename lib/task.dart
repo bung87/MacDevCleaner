@@ -32,7 +32,12 @@ class Task {
   Task(this._globalBus) {
     this._globalBus.on<UserInter>().listen((event) {
       if (event.typ == "scan") {
-        this.scan();
+        try{
+          this.scan();
+        } on FileSystemException catch(e){
+          // does nothing
+        }
+        
       } else if (event.typ == "clean") {
         this.clean();
       }
@@ -99,7 +104,9 @@ class DirsCleanTask {
     }).listen((event) {
       int size = event["size"];
       this.eventBus.fire(DirInfo(event["dir"], size));
-    }).onDone(() {
+    },onError:( (e){
+      // does nothing;
+    })).onDone(() {
       this.eventBus.fire(TaskStatus.done);
     });
   }
