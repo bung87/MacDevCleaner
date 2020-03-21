@@ -7,7 +7,7 @@ import 'dart:convert';
 import './ruby_utils.dart';
 import 'dart:isolate';
 
-final RegExp re = new RegExp(r'\.rvm/gems/ruby\-(\d+\.\d+(?:\.\d+)?)/gems');
+// final RegExp re = new RegExp(r'\.rvm/gems/ruby\-(\d+\.\d+(?:\.\d+)?)/cache');
 
 void runGetDirectorySize(SendPort sendPort) {
   filesInDirectoryWithDepth(
@@ -30,21 +30,25 @@ class RubyTask extends Task {
     //   this.eventBus.fire(TaskData(this.app, e.toString()));
     // } );
     ReceivePort receivePort = ReceivePort();
-    var isolate = await Isolate.spawn(runGetDirectorySize, receivePort.sendPort,
-        onExit: receivePort.sendPort);
+    var isolate = await Isolate.spawn(runGetDirectorySize, receivePort.sendPort);
 
     receivePort.listen((data) {
-      _scan(data);
       isolate.kill(priority: 0);
+      _scan(data);
+      
     });
   }
 
   _scan(out) async {
-    final days = new DateTime.now().subtract(new Duration(days: 90));
-    var dirs = await filesInDirectory(out, FileSystemEntityType.directory);
+    if(out == null){
+      return;
+    }
+    // final days = new DateTime.now().subtract(new Duration(days: 90));
+    // var dirs = await filesInDirectory(out, FileSystemEntityType.file);
     int total = 0;
-    Stream.fromIterable(dirs)
-        .skipWhile((element) => element.statSync().accessed.isAfter(days))
+    // Stream.fromFuture(dirs)
+    out.list(recursive: false, followLinks: false)
+        // .skipWhile((element) => element.statSync().accessed.isAfter(days))
         .asyncMap((event) async {
       var size = await directorySize(event);
       var data = {"dir": event, "size": size};

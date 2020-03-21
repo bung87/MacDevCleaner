@@ -2,7 +2,7 @@ import 'package:path/path.dart' as path;
 import 'dart:io' show Directory, File, FileSystemEntity, FileSystemEntityType;
 import 'dart:isolate';
 
-final RegExp re = new RegExp(r'\.rvm/gems/ruby\-(\d+\.\d+(?:\.\d+)?)/gems');
+final RegExp re = new RegExp(r'\.rvm/gems/ruby\-(\d+\.\d+(?:\.\d+)?)/cache');
 
 filesInDirectoryWithDepth(Directory dir, FileSystemEntityType typ,
     int currentLevel, int maxLevel,SendPort sendPort)  {

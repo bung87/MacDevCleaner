@@ -49,6 +49,8 @@ class Task {
     Stream.fromIterable(cache).listen((element) {
       if (element["dir"] is Directory) {
         (element["dir"] as Directory).delete(recursive: true);
+      }else{
+        element["dir"].delete();
       }
     }).onDone(() {
       this
@@ -64,7 +66,12 @@ class Task {
         .asyncMap((event) => directorySize(event["dir"]))
         .reduce((previous, element) => previous + element)
         .then((value) {
-      this.eventBus.fire(TaskData(this.app, fileSizeHumanReadable(value)));
+          if(value == 0){
+            this.eventBus.fire(TaskData(this.app, "empty"));
+          }else{
+            this.eventBus.fire(TaskData(this.app, fileSizeHumanReadable(value)));
+          }
+      
       this.cache.clear();
     });
   }

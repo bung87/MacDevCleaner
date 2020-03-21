@@ -1,7 +1,8 @@
-import 'dart:io' show Directory, File, FileSystemEntity, FileSystemEntityType,Platform;
+import 'dart:io'
+    show Directory, File, FileSystemEntity, FileSystemEntityType, Platform;
 
 final String userHome =
-      Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+    Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
 
 filesInDirectory(Directory dir, FileSystemEntityType typ) async {
   List<dynamic> files = <dynamic>[];
@@ -19,21 +20,27 @@ filesInDirectory(Directory dir, FileSystemEntityType typ) async {
   return files;
 }
 
-
-directorySize(Directory dir) async {
-  if(!dir.existsSync()){
+directorySize( dir) async {
+  if (!dir.existsSync()) {
     return 0;
   }
   var total = 0;
-  await for (var entity in dir.list(recursive: true, followLinks: false)) {
-    FileSystemEntityType type =
-        await FileSystemEntity.type(entity.path, followLinks: false);
+  if (await FileSystemEntity.type(dir.path, followLinks: false) ==
+      FileSystemEntityType.directory) {
+    await for (var entity in dir.list(recursive: true, followLinks: false)) {
+      FileSystemEntityType type =
+          await FileSystemEntity.type(entity.path, followLinks: false);
 
-    if (type == FileSystemEntityType.file) {
-      var stat = await entity.stat();
-      total += stat.size;
+      if (type == FileSystemEntityType.file) {
+        var stat = await entity.stat();
+        total += stat.size;
+      }
     }
+  } else {
+    var stat = await dir.stat();
+    total += stat.size;
   }
+
   return total;
 }
 

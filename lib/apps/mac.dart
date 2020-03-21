@@ -5,6 +5,17 @@ import 'package:path/path.dart' as path;
 import 'package:event_bus/event_bus.dart';
 import '../filesize.dart';
 
+const skipDirs = ["/Library/Caches/ColorSync",
+"/Library/logs/DiagnosticReports",
+"/Library/logs/CrashReporter",
+"/var/log/displaypolicy",
+"/var/log/powermanagement",
+"/var/log/asl",
+"/var/log/DiagnosticMessages",
+"/var/log/Bluetooth",
+"/var/log/com.apple.wifivelocity",
+];
+
 class MacTask extends Task{
    String  app = "Mac";
   MacTask(EventBus _globalBus) : super(_globalBus) {
@@ -29,7 +40,7 @@ class MacTask extends Task{
   scan(){
     int total = 0;
     var task = new DirsCleanTask(this.dirs);
-    task.eventBus.on<DirInfo>().listen( (event ) {
+    task.eventBus.on<DirInfo>().skipWhile((element) => skipDirs.indexOf(element.name) != -1 ).listen( (event ) {
       total += event.size;
       
       this.eventBus.fire( TaskData(this.app,event.toString() ) );

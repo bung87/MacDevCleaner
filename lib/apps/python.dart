@@ -32,12 +32,12 @@ class PythonTask extends Task {
     // );
 
     ReceivePort receivePort = ReceivePort();
-    var isolate = await Isolate.spawn(runGetDirectorySize, receivePort.sendPort,
-        onExit: receivePort.sendPort);
+    var isolate = await Isolate.spawn(runGetDirectorySize, receivePort.sendPort);
 
     receivePort.listen((data) {
-      _scan(data);
       isolate.kill(priority: 0);
+      _scan(data);
+      
     });
   }
 
