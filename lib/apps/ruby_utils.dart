@@ -55,6 +55,8 @@ filesInDirectoryWithDepth(Directory dir, FileSystemEntityType typ,
               entity, typ, currentLevel + 1, maxLevel,sendPort);
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      print(e);
+    }
   }
 }

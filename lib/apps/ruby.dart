@@ -30,17 +30,20 @@ class RubyTask extends Task {
     //   this.eventBus.fire(TaskData(this.app, e.toString()));
     // } );
     ReceivePort receivePort = ReceivePort();
-    var isolate = await Isolate.spawn(runGetDirectorySize, receivePort.sendPort);
+    var isolate = await Isolate.spawn(runGetDirectorySize, receivePort.sendPort,
+        onExit: receivePort.sendPort);
 
     receivePort.listen((data) {
-      isolate.kill(priority: 0);
       _scan(data);
-      
     });
   }
 
   _scan(out) async {
-    if(out == null){
+    if (out == null) {
+      this.eventBus.fire(TaskData(this.app, "empty"));
+      this
+          .eventBus
+          .fire(TaskState(this.app, TaskStatus.done, TaskType.scan, 0));
       return;
     }
     // final days = new DateTime.now().subtract(new Duration(days: 90));
