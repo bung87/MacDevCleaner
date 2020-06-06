@@ -3,7 +3,6 @@ import 'package:event_bus/event_bus.dart';
 import 'dart:io';
 import '../utils.dart';
 import '../filesize.dart';
-import 'dart:convert';
 import './ruby_utils.dart';
 import 'dart:isolate';
 
@@ -32,7 +31,7 @@ class RubyTask extends Task {
     ReceivePort receivePort = ReceivePort();
     var isolate = await Isolate.spawn(runGetDirectorySize, receivePort.sendPort,
         onExit: receivePort.sendPort);
-
+    
     receivePort.listen((data) {
       _scan(data);
     });

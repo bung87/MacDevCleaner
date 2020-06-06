@@ -46,6 +46,12 @@ class Task {
 
   void scan() {}
   void clean() {
+    if(cache.length == 0){
+      this
+          .eventBus
+          .fire(TaskState(this.app, TaskStatus.done, TaskType.clean, 0));
+      return;
+    }
     Stream.fromIterable(cache).listen((element) {
       if (element["dir"] is Directory) {
         (element["dir"] as Directory).delete(recursive: true);
@@ -88,9 +94,14 @@ class DirInfo {
 
 class DirsCleanTask {
   List<String> dirs;
+  List<String> skipDirs = [];
   EventBus eventBus = EventBus();
   List<dynamic> cache = [];
-  DirsCleanTask(this.dirs) {}
+  DirsCleanTask(this.dirs,[List<String>  skipDirs]) {
+    if(skipDirs != null){
+      this.skipDirs = skipDirs;
+    }
+  }
 
   void scan() {
     final concate =
@@ -103,6 +114,7 @@ class DirsCleanTask {
     Stream.fromIterable(this.dirs)
         .asyncMap((event) =>
             filesInDirectory(Directory(event), FileSystemEntityType.directory))
+        .where((event) => skipDirs.indexOf(event.path)  == -1 )
         .transform(concate)
         .asyncMap((dir) async {
       var size = directorySizeSync(dir);

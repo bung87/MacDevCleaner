@@ -13,7 +13,8 @@ const skipDirs = ["/Library/Caches/ColorSync",
 "/var/log/asl",
 "/var/log/DiagnosticMessages",
 "/var/log/Bluetooth",
-"/var/log/com.apple.wifivelocity",
+"/var/log/cups",
+"/var/log/com.apple.wifivelocity"
 ];
 
 class MacTask extends Task{
@@ -39,10 +40,9 @@ class MacTask extends Task{
   @override
   scan(){
     int total = 0;
-    var task = new DirsCleanTask(this.dirs);
-    task.eventBus.on<DirInfo>().skipWhile((element) => skipDirs.indexOf(element.name) != -1 ).listen( (event ) {
+    var task = new DirsCleanTask(this.dirs,skipDirs);
+    task.eventBus.on<DirInfo>().where((element) => skipDirs.indexOf(element.name) == -1 ).listen( (event ) {
       total += event.size;
-      
       this.eventBus.fire( TaskData(this.app,event.toString() ) );
     });
     task.eventBus.on<TaskStatus>().listen((event) {
